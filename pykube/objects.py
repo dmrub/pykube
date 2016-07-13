@@ -39,6 +39,14 @@ class APIObject(object):
         return self.obj["metadata"]["name"]
 
     @property
+    def uid(self):
+        return self.obj["metadata"]["uid"]
+
+    @property
+    def resource_version(self):
+        return self.obj["metadata"]["resourceVersion"]
+
+    @property
     def annotations(self):
         return self.obj["metadata"].get("annotations", {})
 
@@ -180,6 +188,18 @@ class Pod(NamespacedAPIObject):
     kind = "Pod"
 
     @property
+    def containers(self):
+        return self.obj["spec"].get("containers", [])
+
+    @property
+    def pod_ip(self):
+        return self.obj["status"].get("podIP")
+
+    @property
+    def host_ip(self):
+        return self.obj["status"].get("hostIP")
+
+    @property
     def ready(self):
         cs = self.obj["status"].get("conditions", [])
         condition = next((c for c in cs if c["type"] == "Ready"), None)
@@ -213,6 +233,14 @@ class Service(NamespacedAPIObject):
     endpoint = "services"
     kind = "Service"
 
+
+    @property
+    def cluster_ip(self):
+        return self.obj["spec"].get("clusterIP")
+
+    @property
+    def ports(self):
+        return self.obj["spec"].get("ports", [])
 
 class PersistentVolume(APIObject):
 
