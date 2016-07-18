@@ -215,7 +215,6 @@ class Pod(NamespacedAPIObject):
         http://kubernetes.io/docs/api-reference/v1/operations/,
         part 'read log of the specified Pod'. The result is plain text.
         """
-        url = "log"
         params = {}
         if container is not None:
             params["container"] = container
@@ -235,12 +234,11 @@ class Pod(NamespacedAPIObject):
             params["limitBytes"] = int(limit_bytes)
 
         query_string = urlencode(params)
-        url += "?{}".format(query_string) if query_string else ""
+        query_string = "?{}".format(query_string) if query_string else ""
         kwargs = {
             "version": self.version,
-            "url": url,
+            "url": op.normpath(op.join(self.endpoint, self.name, "log"))+query_string,
             "namespace": self.namespace,
-            "operation": "pods/{}".format(self.name),
         }
         r = self.api.get(**kwargs)
         r.raise_for_status()
