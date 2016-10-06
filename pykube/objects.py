@@ -48,6 +48,10 @@ class APIObject(object):
         return self.obj["metadata"]["resourceVersion"]
 
     @property
+    def labels(self):
+        return self.obj["metadata"].get("labels", {})
+
+    @property
     def annotations(self):
         return self.obj["metadata"].get("annotations", {})
 
