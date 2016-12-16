@@ -4,12 +4,10 @@ HTTP request related code.
 
 import posixpath
 import re
-import sys
-import warnings
-import requests
 
 from six.moves.urllib.parse import urlparse
 
+from .session import build_session
 from .exceptions import HTTPError
 
 
@@ -21,16 +19,25 @@ class HTTPClient(object):
     Client for interfacing with the Kubernetes API.
     """
 
-    def __init__(self, config):
+    _session = None
+
+    def __init__(self, config, gcloud_file=None):
         """
         Creates a new instance of the HTTPClient.
 
         :Parameters:
            - `config`: The configuration instance
+           - `gcloud_file`: For GCP deployments, override gcloud credentials file location
         """
         self.config = config
+        self.gcloud_file = gcloud_file
         self.url = self.config.cluster["server"]
-        self.session = self.build_session()
+
+    @property
+    def session(self):
+        if not self._session:
+            self._session = build_session(self.config, self.gcloud_file)
+        return self._session
 
     @property
     def url(self):
@@ -39,30 +46,7 @@ class HTTPClient(object):
     @url.setter
     def url(self, value):
         pr = urlparse(value)
-        if sys.version_info < (3, 5) and ("::" in pr.hostname or _ipv4_re.match(pr.hostname)):
-            warnings.warn("IP address hostnames are not supported with Python < 3.5. Please see https://github.com/kelproject/pykube/issues/29 for more info.", RuntimeWarning)
         self._url = pr.geturl()
-
-    def build_session(self):
-        """
-        Creates a new session for the client.
-        """
-        s = requests.Session()
-        if "certificate-authority" in self.config.cluster:
-            s.verify = self.config.cluster["certificate-authority"].filename()
-        if "insecure-skip-tls-verify" in self.config.cluster:
-            if self.config.cluster["insecure-skip-tls-verify"]:
-                s.verify = False
-        if "token" in self.config.user and self.config.user["token"]:
-            s.headers["Authorization"] = "Bearer {}".format(self.config.user["token"])
-        elif "client-certificate" in self.config.user:
-            s.cert = (
-                self.config.user["client-certificate"].filename(),
-                self.config.user["client-key"].filename(),
-            )
-        else:  # no user present; don't configure anything
-            pass
-        return s
 
     def get_kwargs(self, **kwargs):
         """
@@ -74,7 +58,7 @@ class HTTPClient(object):
         version = kwargs.pop("version", "v1")
         if version == "v1":
             base = kwargs.pop("base", "/api")
-        elif any(map(version.startswith, ["extensions/", "batch/"])):
+        elif "/" in version:
             base = kwargs.pop("base", "/apis")
         else:
             if "base" not in kwargs:
@@ -104,7 +88,7 @@ class HTTPClient(object):
             if resp.headers["content-type"] == "application/json":
                 payload = resp.json()
                 if payload["kind"] == "Status":
-                    raise HTTPError(payload["message"])
+                    raise HTTPError(resp.status_code, payload["message"])
             raise
 
     def request(self, *args, **kwargs):

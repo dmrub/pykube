@@ -7,13 +7,13 @@ with open("README.rst") as fp:
 
 setup(
     name="pykube",
-    version="0.12.0",
+    version="0.14.0a1",
     description="Python client library for Kubernetes",
     long_description=long_description,
     author="Eldarion, Inc.",
     author_email="development@eldarion.com",
     license="Apache",
-    url="https://github.com/eldarion-gondor/pykube",
+    url="https://github.com/kelproject/pykube",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
@@ -25,8 +25,11 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     install_requires=[
-        "requests",
+        "requests>=2.12",
+        "requests-oauthlib",
         "PyYAML",
         "six",
+        "tzlocal",
+        "oauth2client",
     ],
 )

@@ -2,10 +2,38 @@
 
 ## Development
 
+## 0.14.0
+
+## Features
+
+* added Kubernetes API objects:
+  * `Role`
+  * `ClusterRole`
+  * `RoleBinding`
+  * `ClusterRoleBinding`
+* `HTTPClient` learned to handle GKE OAuth authentication
+* `Pod` learned to retrieve logs for containers
+* `Query.filter` learned to scope based on fields
+* Fixed handling of Kubernetes certificates for Python versions < 3.5
+
+## 0.13.0
+
 ### Features
 
+* added Kubernetes API objects:
+  * `Event`
+  * `ResourceQuota`
+  * `ServiceAccount`
+  * `ThirdPartyResource`
+  * `PetSet`
+  * `HorizontalPodAutoscaler`
 * `KubeConfig` learned to handle empty or missing user configuration
 * `HTTPClient` learned to create an HTTP session with no authentication
+* `Deployment` learned to report itself ready
+
+### Bug fixes
+
+* `WatchQuery` learned to query against non-v1 API objects
 
 ## 0.12.0
 
